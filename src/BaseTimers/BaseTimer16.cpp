@@ -36,16 +36,16 @@ BaseTimer16::BaseTimer16(
     OCRnA(OCRnA) , OCRnB(OCRnB) , ICRn(ICRn) ,
     TIMSKn(TIMSKn) , OCIEnA(OCIEnA) , OCIEnB(OCIEnB) , ICIEn(ICIEn) , TOIEn(TOIEn) ,
     TIFRn(TIFRn) , OCFnA(OCFnA) , OCFnB(OCFnB) , ICFn(ICFn) , TOVn(TOVn) ,
-    compAInt(compAInt) , compBInt(compBInt) , captInt(captInt) , ovfInt(ovfInt)
+    compAInt(compAInt) , compBInt(compBInt) , captInt(captInt) , ovfInt(ovfInt) ,
 #if defined( __AVR_ATmega2560__ )
-    ,
     COMnC1(COMnC1) , COMnC0(COMnC0) ,
     FOCnC(FOCnC) ,
     OCRnC(OCRnC) ,
     OCIEnC(OCIEnC) ,
     OCFnC(OCFnC) ,
-    compCInt(compCInt)
+    compCInt(compCInt) ,
 #endif
+	extTickRate( 0 )
 {}
 
 // ------------------------------------------- //
@@ -97,6 +97,42 @@ void BaseTimer16::setClockSource( uint8_t source ) {
     }
     
     SREG = oldSREG;
+}
+
+// ------------------------------- //
+//            Tick Rate            //
+// ------------------------------- //
+
+void BaseTimer16::setExternalTickRate( float tickRate ) {
+	extTickRate = tickRate;
+}
+
+float BaseTimer16::getTickRate() {
+	if ( *TCCRnB & (1<<CSn2) ) {
+		if ( *TCCRnB & (1<<CSn1) ) {
+			return extTickRate;
+		} else {
+			if ( *TCCRnB & (1<<CSn0) ) {
+				return F_CPU / 1024;
+			} else {
+				return F_CPU / 256;
+			}
+		}
+	} else {
+		if ( *TCCRnB & (1<<CSn1) ) {
+			if ( *TCCRnB & (1<<CSn0) ) {
+				return F_CPU / 64;
+			} else {
+				return F_CPU / 8;
+			}
+		} else {
+			if ( *TCCRnB & (1<<CSn0) ) {
+				return F_CPU;
+			} else {
+				return 0;
+			}
+		}
+	}
 }
 
 // --------------------------------------- //

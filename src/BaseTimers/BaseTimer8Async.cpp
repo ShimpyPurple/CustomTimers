@@ -25,7 +25,8 @@ BaseTimer8Async::BaseTimer8Async(
     OCRnA(OCRnA) , OCRnB(OCRnB) ,
     TIMSKn(TIMSKn) , OCIEnA(OCIEnA) , OCIEnB(OCIEnB) , TOIEn(TOIEn) ,
     TIFRn(TIFRn) , OCFnA(OCFnA) , OCFnB(OCFnB) , TOVn(TOVn) ,
-    compAInt(compAInt) , compBInt(compBInt) , ovfInt(ovfInt)
+    compAInt(compAInt) , compBInt(compBInt) , ovfInt(ovfInt) ,
+	clockRate( F_CPU )
 {}
 
 // ------------------------------------------- //
@@ -69,6 +70,46 @@ void BaseTimer8Async::setClockSource( uint8_t source ) {
     }
     
     SREG = oldSREG;
+}
+
+// ------------------------------- //
+//            Tick Rate            //
+// ------------------------------- //
+
+void BaseTimer8Async::setClockRate( float clockRate ) {
+	this->clockRate = clockRate;
+}
+
+float BaseTimer8Async::getTickRate() {
+	if ( *TCCRnB & (1<<CSn2) ) {
+		if ( *TCCRnB & (1<<CSn1) ) {
+			if ( *TCCRnB & (1<<CSn0) ) {
+				return clockRate / 1024;
+			} else {
+				return clockRate / 256;
+			}
+		} else {
+			if ( *TCCRnB & (1<<CSn0) ) {
+				return clockRate / 128;
+			} else {
+				return clockRate / 64;
+			}
+		}
+	} else {
+		if ( *TCCRnB & (1<<CSn1) ) {
+			if ( *TCCRnB & (1<<CSn0) ) {
+				return clockRate / 32;
+			} else {
+				return clockRate / 8;
+			}
+		} else {
+			if ( *TCCRnB & (1<<CSn0) ) {
+				return clockRate;
+			} else {
+				return 0;
+			}
+		}
+	}
 }
 
 // --------------------------------------- //
