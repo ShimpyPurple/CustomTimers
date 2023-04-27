@@ -46,11 +46,11 @@ class GenericTimer {
         // Mode and Clock Source
         void setMode( uint8_t mode );
         void setClockSource( uint8_t source );
-		
-		// Tick Rate
-		void setExternalTickRate( float tickRate );
-		void setClockRate( float clockRate );
-		float getTickRate();
+        
+        // Tick Rate
+        void setExternalTickRate( float tickRate );
+        void setClockRate( float clockRate );
+        float getTickRate();
         
         // Set and Get TCNTn
         void setCounter( uint16_t value );

@@ -46,7 +46,7 @@ BaseTimer16::BaseTimer16(
     compCInt(compCInt) ,
 #endif
     reserved( false ) ,
-	extTickRate( 0 )
+    extTickRate( 0 )
 {}
 
 // --------------------------------------- //
@@ -133,35 +133,35 @@ void BaseTimer16::setClockSource( uint8_t source ) {
 // ------------------------------- //
 
 void BaseTimer16::setExternalTickRate( float tickRate ) {
-	extTickRate = tickRate;
+    extTickRate = tickRate;
 }
 
 float BaseTimer16::getTickRate() {
-	if ( *TCCRnB & (1<<CSn2) ) {
-		if ( *TCCRnB & (1<<CSn1) ) {
-			return extTickRate;
-		} else {
-			if ( *TCCRnB & (1<<CSn0) ) {
-				return F_CPU / 1024;
-			} else {
-				return F_CPU / 256;
-			}
-		}
-	} else {
-		if ( *TCCRnB & (1<<CSn1) ) {
-			if ( *TCCRnB & (1<<CSn0) ) {
-				return F_CPU / 64;
-			} else {
-				return F_CPU / 8;
-			}
-		} else {
-			if ( *TCCRnB & (1<<CSn0) ) {
-				return F_CPU;
-			} else {
-				return 0;
-			}
-		}
-	}
+    if ( *TCCRnB & (1<<CSn2) ) {
+        if ( *TCCRnB & (1<<CSn1) ) {
+            return extTickRate;
+        } else {
+            if ( *TCCRnB & (1<<CSn0) ) {
+                return F_CPU / 1024;
+            } else {
+                return F_CPU / 256;
+            }
+        }
+    } else {
+        if ( *TCCRnB & (1<<CSn1) ) {
+            if ( *TCCRnB & (1<<CSn0) ) {
+                return F_CPU / 64;
+            } else {
+                return F_CPU / 8;
+            }
+        } else {
+            if ( *TCCRnB & (1<<CSn0) ) {
+                return F_CPU;
+            } else {
+                return 0;
+            }
+        }
+    }
 }
 
 // --------------------------------------- //

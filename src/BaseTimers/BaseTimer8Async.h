@@ -32,10 +32,10 @@ class BaseTimer8Async {
         // Mode and Clock Source
         void setMode( uint8_t mode );
         void setClockSource( uint8_t source );
-		
-		// Tick Rate
-		void setClockRate( float clockRate );
-		float getTickRate();
+        
+        // Tick Rate
+        void setClockRate( float clockRate );
+        float getTickRate();
         
         // Set and Get TCNTn
         void setCounter( uint8_t value );
@@ -83,7 +83,7 @@ class BaseTimer8Async {
         volatile uint8_t *TIFRn; uint8_t OCFnA; uint8_t OCFnB; uint8_t TOVn;
         TimerInt *compAInt; TimerInt *compBInt; TimerInt *ovfInt;
         bool reserved;
-		float clockRate;
+        float clockRate;
 
 };
 
