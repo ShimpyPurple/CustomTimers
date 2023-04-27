@@ -53,7 +53,7 @@ BaseTimer16::BaseTimer16(
 //            Timer Reservation            //
 // --------------------------------------- //
 
-bool BaseTimer16::reserve(){
+bool BaseTimer16::reserve() {
     if ( !reserved ) {
         reserved = true;
         return true;
@@ -62,11 +62,11 @@ bool BaseTimer16::reserve(){
     }
 }
 
-bool BaseTimer16::isFree(){
+bool BaseTimer16::isFree() {
     return !reserved;
 }
 
-void BaseTimer16::release(){
+void BaseTimer16::release() {
     reserved = false;
     disableInterrupt( COMPARE_MATCH_A );
     disableInterrupt( COMPARE_MATCH_B );
