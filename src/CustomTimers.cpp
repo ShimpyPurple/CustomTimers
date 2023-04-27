@@ -201,6 +201,10 @@ GenericTimer::GenericTimer( BaseTimer8Async *timer8Async ):
     timer8Async( timer8Async )
 {}
 
+uint8_t getTimerType() { return timerType; }
+BaseTimer16 *getTimer16() { return timer16; }
+BaseTimer8Async *getTimer8Async() { return timer8Async; }
+
 // --------------------------------------- //
 //            Timer Reservation            //
 // --------------------------------------- //
