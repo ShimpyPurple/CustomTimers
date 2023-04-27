@@ -34,7 +34,7 @@ class BaseTimer8Async {
         void setClockSource( uint8_t source );
 		
 		// Tick Rate
-		void setClockRate( float );
+		void setClockRate( float clockRate );
 		float getTickRate();
         
         // Set and Get TCNTn
