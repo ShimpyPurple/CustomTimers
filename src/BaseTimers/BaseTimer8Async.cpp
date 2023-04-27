@@ -26,8 +26,33 @@ BaseTimer8Async::BaseTimer8Async(
     TIMSKn(TIMSKn) , OCIEnA(OCIEnA) , OCIEnB(OCIEnB) , TOIEn(TOIEn) ,
     TIFRn(TIFRn) , OCFnA(OCFnA) , OCFnB(OCFnB) , TOVn(TOVn) ,
     compAInt(compAInt) , compBInt(compBInt) , ovfInt(ovfInt) ,
+    reserved( false ) ,
 	clockRate( F_CPU )
 {}
+
+// --------------------------------------- //
+//            Timer Reservation            //
+// --------------------------------------- //
+
+bool BaseTimer8Async::reserve(){
+    if ( !reserved ) {
+        reserved = true;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool BaseTimer8Async::isFree(){
+    return !reserved;
+}
+
+void BaseTimer8Async::release(){
+    reserved = false;
+    disableInterrupt( COMPARE_MATCH_A );
+    disableInterrupt( COMPARE_MATCH_B );
+    disableInterrupt( OVERFLOW );
+}
 
 // ------------------------------------------- //
 //            Mode and Clock Source            //
