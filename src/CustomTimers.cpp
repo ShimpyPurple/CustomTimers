@@ -1,5 +1,9 @@
 #include "CustomTimers.h"
 
+// ----------------------------- //
+//            Timer 1            //
+// ----------------------------- //
+
 #if ( TIMER1_ENABLED != 0 )
 TimerInt timer1CompAInt;
 TimerInt timer1CompBInt;
@@ -40,6 +44,10 @@ BaseTimer16 Timer1(
 );
 #endif
 
+// ----------------------------- //
+//            Timer 2            //
+// ----------------------------- //
+
 #if ( TIMER2_ENABLED != 0 )
 TimerInt timer2CompAInt;
 TimerInt timer2CompBInt;
@@ -62,6 +70,10 @@ BaseTimer8Async Timer2(
     &timer2CompAInt , &timer2CompBInt , &timer2OvfInt
 );
 #endif
+
+// ----------------------------- //
+//            Timer 3            //
+// ----------------------------- //
 
 #if ( TIMER3_ENABLED != 0 ) && defined( __AVR_ATmega2560__ )
 TimerInt timer3CompAInt;
@@ -97,6 +109,10 @@ BaseTimer16 Timer3(
 );
 #endif
 
+// ----------------------------- //
+//            Timer 4            //
+// ----------------------------- //
+
 #if ( TIMER4_ENABLED != 0 ) && defined( __AVR_ATmega2560__ )
 TimerInt timer4CompAInt;
 TimerInt timer4CompBInt;
@@ -131,6 +147,10 @@ BaseTimer16 Timer4(
 );
 #endif
 
+// ----------------------------- //
+//            Timer 5            //
+// ----------------------------- //
+
 #if ( TIMER5_ENABLED != 0 ) && defined( __AVR_ATmega2560__ )
 TimerInt timer5CompAInt;
 TimerInt timer5CompBInt;
@@ -164,3 +184,343 @@ BaseTimer16 Timer5(
     &timer5CompCInt
 );
 #endif
+
+// ----------------------------------- //
+//            Generic Timer            //
+// ----------------------------------- //
+
+GenericTimer::GenericTimer( BaseTimer16 *timer16 ):
+    timerType( TIMER_16_BIT ) ,
+    timer16( timer16 ) ,
+    timer8Async( nullptr )
+{}
+
+GenericTimer::GenericTimer( BaseTimer8Async *timer8Async ):
+    timerType( TIMER_8_BIT_ASYNC ) ,
+    timer16( nullptr ) ,
+    timer8Async( timer8Async )
+{}
+
+// --------------------------------------- //
+//            Timer Reservation            //
+// --------------------------------------- //
+
+bool GenericTimer::reserve() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->reserve();
+        case TIMER_8_BIT_ASYNC: return timer8Async->reserve();
+        default: return false;
+    }
+}
+
+bool GenericTimer::isFree() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->isFree();
+        case TIMER_8_BIT_ASYNC: return timer8Async->isFree();
+        default: return false;
+    }
+}
+
+void GenericTimer::release() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->release(); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->release(); break;
+    }
+}
+
+// ------------------------------------------- //
+//            Mode and Clock Source            //
+// ------------------------------------------- //
+
+void GenericTimer::setMode( uint8_t mode ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->setMode( mode ); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->setMode( mode ); break;
+    }
+}
+
+void GenericTimer::setClockSource( uint8_t source ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->setClockSource( source ); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->setClockSource( source ); break;
+    }
+}
+
+// ------------------------------- //
+//            Tick Rate            //
+// ------------------------------- //
+
+void GenericTimer::setExternalTickRate( float tickRate ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->setExternalTickRate( tickRate ); break;
+    }
+}
+
+void GenericTimer::setClockRate( float clockRate ) {
+    switch ( timerType ) {
+        case TIMER_8_BIT_ASYNC: timer8Async->setClockRate( clockRate ); break;
+    }
+}
+
+float GenericTimer::getTickRate() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getTickRate();
+        case TIMER_8_BIT_ASYNC: return timer8Async->getTickRate();
+        default: return 0;
+    }
+}
+
+// --------------------------------------- //
+//            Set and Get TCNTn            //
+// --------------------------------------- //
+
+void GenericTimer::setCounter( uint16_t value ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->setCounter( value ); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->setCounter( value ); break;
+    }
+}
+
+uint16_t GenericTimer::getCounter() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getCounter();
+        case TIMER_8_BIT_ASYNC: return timer8Async->getCounter();
+        default: return 0;
+    }
+}
+
+// --------------------------------------- //
+//            Compare A Methods            //
+// --------------------------------------- //
+
+void GenericTimer::setOutputCompareA( uint16_t value ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->setOutputCompareA( value ); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->setOutputCompareA( value ); break;
+    }
+}
+
+uint16_t GenericTimer::getOutputCompareA() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getOutputCompareA();
+        case TIMER_8_BIT_ASYNC: return timer8Async->getOutputCompareA();
+        default: return 0;
+    }
+}
+
+void GenericTimer::setCompareOutputModeA( uint8_t mode ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->setCompareOutputModeA( mode ); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->setCompareOutputModeA( mode ); break;
+    }
+}
+
+void GenericTimer::forceOutputCompareA() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->forceOutputCompareA(); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->forceOutputCompareA(); break;
+    }
+}
+
+bool GenericTimer::getOutputCompareAFlag() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getOutputCompareAFlag();
+        case TIMER_8_BIT_ASYNC: return timer8Async->getOutputCompareAFlag();
+        default: return false;
+    }
+}
+
+void GenericTimer::clearOutputCompareAFlag() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->clearOutputCompareAFlag(); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->clearOutputCompareAFlag(); break;
+    }
+}
+
+// --------------------------------------- //
+//            Compare B Methods            //
+// --------------------------------------- //
+
+void GenericTimer::setOutputCompareB( uint16_t value ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->setOutputCompareB( value ); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->setOutputCompareB( value ); break;
+    }
+}
+
+uint16_t GenericTimer::getOutputCompareB() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getOutputCompareB();
+        case TIMER_8_BIT_ASYNC: return timer8Async->getOutputCompareB();
+        default: return 0;
+    }
+}
+
+void GenericTimer::setCompareOutputModeB( uint8_t mode ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->setCompareOutputModeB( mode ); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->setCompareOutputModeB( mode ); break;
+    }
+}
+
+void GenericTimer::forceOutputCompareB() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->forceOutputCompareB(); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->forceOutputCompareB(); break;
+    }
+}
+
+bool GenericTimer::getOutputCompareBFlag() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getOutputCompareBFlag();
+        case TIMER_8_BIT_ASYNC: return timer8Async->getOutputCompareBFlag();
+        default: return false;
+    }
+}
+
+void GenericTimer::clearOutputCompareBFlag() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->clearOutputCompareBFlag(); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->clearOutputCompareBFlag(); break;
+    }
+}
+
+// --------------------------------------- //
+//            Compare C Methods            //
+// --------------------------------------- //
+
+#if defined( __AVR_ATmega2560__ )
+void GenericTimer::setOutputCompareC( uint16_t value ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->setOutputCompareC( value ); break;
+    }
+}
+
+uint16_t GenericTimer::getOutputCompareC() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getOutputCompareC();
+        default: return 0;
+    }
+}
+
+void GenericTimer::setCompareOutputModeC( uint8_t mode ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->setCompareOutputModeC( mode ); break;
+    }
+}
+
+void GenericTimer::forceOutputCompareC() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->forceOutputCompareC(); break;
+    }
+}
+
+bool GenericTimer::getOutputCompareCFlag() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getOutputCompareCFlag();
+        default: return false;
+    }
+}
+
+void GenericTimer::clearOutputCompareCFlag() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->clearOutputCompareCFlag(); break;
+    }
+}
+#endif
+
+// ------------------------------------------- //
+//            Input Capture Methods            //
+// ------------------------------------------- //
+
+void GenericTimer::setInputCapture( uint16_t value ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->setInputCapture( value ); break;
+    }
+}
+
+uint16_t GenericTimer::getInputCapture() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getInputCapture();
+        default: return 0;
+    }
+}
+
+bool GenericTimer::getInputCaptureFlag() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getInputCaptureFlag();
+        default: return false;
+    }
+}
+
+void GenericTimer::clearInputCaptureFlag() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->clearInputCaptureFlag(); break;
+    }
+}
+
+void GenericTimer::configureInputCapture( uint8_t edgeMode , bool noiseCanceller ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->configureInputCapture( edgeMode , noiseCanceller ); break;
+    }
+}
+
+// ----------------------------------- //
+//            Overflow Flag            //
+// ----------------------------------- //
+
+bool GenericTimer::getOverflowFlag() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getOverflowFlag();
+        case TIMER_8_BIT_ASYNC: return timer8Async->getOverflowFlag();
+        default: return false;
+    }
+}
+
+void GenericTimer::clearOverflowFlag() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->clearOverflowFlag(); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->clearOverflowFlag(); break;
+    }
+}
+
+// -------------------------------- //
+//            Interrupts            //
+// -------------------------------- //
+
+void GenericTimer::attachInterrupt( uint8_t mode , void (*func)() ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->attachInterrupt( mode , func ); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->attachInterrupt( mode , func ); break;
+    }
+}
+
+void GenericTimer::attachInterrupt( uint8_t mode , void (*func)(void*) , void *arg ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->attachInterrupt( mode , func , arg ); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->attachInterrupt( mode , func , arg ); break;
+    }
+}
+
+void GenericTimer::enableInterrupt( uint8_t mode ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->enableInterrupt( mode ); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->enableInterrupt( mode ); break;
+    }
+}
+
+void GenericTimer::disableInterrupt( uint8_t mode ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: timer16->disableInterrupt( mode ); break;
+        case TIMER_8_BIT_ASYNC: timer8Async->disableInterrupt( mode ); break;
+    }
+}
+
+bool GenericTimer::interruptEnabled( uint8_t mode ) {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->interruptEnabled( mode );
+        case TIMER_8_BIT_ASYNC: return timer8Async->interruptEnabled( mode );
+        default: return false;
+    }
+}
+

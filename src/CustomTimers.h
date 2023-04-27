@@ -27,4 +27,84 @@ extern BaseTimer16 Timer4;
 extern BaseTimer16 Timer5;
 #endif
 
+class GenericTimer {
+    public:
+        // Constructors
+        GenericTimer( BaseTimer16 *timer16 );
+        GenericTimer( BaseTimer8Async *timer8Async );
+        
+        // Generic Timer Methods
+        uint8_t getTimerType();
+        BaseTimer16 *getTimer16();
+        BaseTimer8Async *getTimer8Async();
+        
+        // Timer Reservation
+        bool reserve();
+        bool isFree();
+        void release();
+        
+        // Mode and Clock Source
+        void setMode( uint8_t mode );
+        void setClockSource( uint8_t source );
+		
+		// Tick Rate
+		void setExternalTickRate( float tickRate );
+		void setClockRate( float clockRate );
+		float getTickRate();
+        
+        // Set and Get TCNTn
+        void setCounter( uint16_t value );
+        uint16_t getCounter();
+        
+        // Compare A Methods
+        void setOutputCompareA( uint16_t value );
+        uint16_t getOutputCompareA();
+        void setCompareOutputModeA( uint8_t mode );
+        void forceOutputCompareA();
+        bool getOutputCompareAFlag();
+        void clearOutputCompareAFlag();
+        
+        // Compare B Methods
+        void setOutputCompareB( uint16_t value );
+        uint16_t getOutputCompareB();
+        void setCompareOutputModeB( uint8_t mode );
+        void forceOutputCompareB();
+        bool getOutputCompareBFlag();
+        void clearOutputCompareBFlag();
+        
+        // Compare C Methods
+#if defined( __AVR_ATmega2560__ )
+        void setOutputCompareC( uint16_t value );
+        uint16_t getOutputCompareC();
+        void setCompareOutputModeC( uint8_t mode );
+        void forceOutputCompareC();
+        bool getOutputCompareCFlag();
+        void clearOutputCompareCFlag();
+#endif
+        
+        // Input Capture Methods
+        void setInputCapture( uint16_t value );
+        uint16_t getInputCapture();
+        bool getInputCaptureFlag();
+        void clearInputCaptureFlag();
+        void configureInputCapture( uint8_t edgeMode , bool noiseCanceller );
+        
+        // Overflow Flag
+        bool getOverflowFlag();
+        void clearOverflowFlag();
+        
+        // Interrupts
+        void attachInterrupt( uint8_t mode , void (*func)() );
+        void attachInterrupt( uint8_t mode , void (*func)(void*) , void *arg );
+        void enableInterrupt( uint8_t mode );
+        void disableInterrupt( uint8_t mode );
+        bool interruptEnabled( uint8_t mode );
+    
+    private:
+        uint8_t timerType;
+        BaseTimer16 *timer16;
+        BaseTimer8Async *timer8Async;
+    
+};
+
 #endif

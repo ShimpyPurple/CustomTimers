@@ -1,6 +1,9 @@
 #ifndef Constants_h
 #define Constants_h
 
+#define TIMER_16_BIT 1
+#define TIMER_8_BIT_ASYNC 2
+
 #define NORMAL 0
 
 #define PWM_PC_8_BIT     1
