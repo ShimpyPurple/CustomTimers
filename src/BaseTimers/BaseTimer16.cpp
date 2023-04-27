@@ -25,7 +25,7 @@ BaseTimer16::BaseTimer16(
     uint8_t OCFnC ,
     TimerInt *compCInt
 #endif
-        ):
+):
     TCNTn(TCNTn) ,
     TCCRnA(TCCRnA) , TCCRnB(TCCRnB) , TCCRnC(TCCRnC) ,
     COMnA1(COMnA1) , COMnA0(COMnA0) , COMnB1(COMnB1) , COMnB0(COMnB0) ,
@@ -36,17 +36,46 @@ BaseTimer16::BaseTimer16(
     OCRnA(OCRnA) , OCRnB(OCRnB) , ICRn(ICRn) ,
     TIMSKn(TIMSKn) , OCIEnA(OCIEnA) , OCIEnB(OCIEnB) , ICIEn(ICIEn) , TOIEn(TOIEn) ,
     TIFRn(TIFRn) , OCFnA(OCFnA) , OCFnB(OCFnB) , ICFn(ICFn) , TOVn(TOVn) ,
-    compAInt(compAInt) , compBInt(compBInt) , captInt(captInt) , ovfInt(ovfInt)
+    compAInt(compAInt) , compBInt(compBInt) , captInt(captInt) , ovfInt(ovfInt) ,
 #if defined( __AVR_ATmega2560__ )
-    ,
     COMnC1(COMnC1) , COMnC0(COMnC0) ,
     FOCnC(FOCnC) ,
     OCRnC(OCRnC) ,
     OCIEnC(OCIEnC) ,
     OCFnC(OCFnC) ,
-    compCInt(compCInt)
+    compCInt(compCInt) ,
 #endif
+    reserved( false ) ,
+    extTickRate( 0 )
 {}
+
+// --------------------------------------- //
+//            Timer Reservation            //
+// --------------------------------------- //
+
+bool BaseTimer16::reserve() {
+    if ( !reserved ) {
+        reserved = true;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool BaseTimer16::isFree() {
+    return !reserved;
+}
+
+void BaseTimer16::release() {
+    reserved = false;
+    disableInterrupt( COMPARE_MATCH_A );
+    disableInterrupt( COMPARE_MATCH_B );
+    disableInterrupt( INPUT_CAPTURE );
+    disableInterrupt( OVERFLOW );
+#if defined( __AVR_ATmega2560__ )
+    disableInterrupt( COMPARE_MATCH_C );
+#endif
+}
 
 // ------------------------------------------- //
 //            Mode and Clock Source            //
@@ -97,6 +126,42 @@ void BaseTimer16::setClockSource( uint8_t source ) {
     }
     
     SREG = oldSREG;
+}
+
+// ------------------------------- //
+//            Tick Rate            //
+// ------------------------------- //
+
+void BaseTimer16::setExternalTickRate( float tickRate ) {
+    extTickRate = tickRate;
+}
+
+float BaseTimer16::getTickRate() {
+    if ( *TCCRnB & (1<<CSn2) ) {
+        if ( *TCCRnB & (1<<CSn1) ) {
+            return extTickRate;
+        } else {
+            if ( *TCCRnB & (1<<CSn0) ) {
+                return F_CPU / 1024;
+            } else {
+                return F_CPU / 256;
+            }
+        }
+    } else {
+        if ( *TCCRnB & (1<<CSn1) ) {
+            if ( *TCCRnB & (1<<CSn0) ) {
+                return F_CPU / 64;
+            } else {
+                return F_CPU / 8;
+            }
+        } else {
+            if ( *TCCRnB & (1<<CSn0) ) {
+                return F_CPU;
+            } else {
+                return 0;
+            }
+        }
+    }
 }
 
 // --------------------------------------- //

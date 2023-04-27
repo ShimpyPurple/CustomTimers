@@ -34,9 +34,18 @@ class BaseTimer16 {
 #endif
         );
         
+        // Timer Reservation
+        bool reserve();
+        bool isFree();
+        void release();
+        
         // Mode and Clock Source
         void setMode( uint8_t mode );
         void setClockSource( uint8_t source );
+        
+        // Tick Rate
+        void setExternalTickRate( float tickRate );
+        float getTickRate();
         
         // Set and Get TCNTn
         void setCounter( uint16_t value );
@@ -106,6 +115,8 @@ class BaseTimer16 {
         uint8_t OCFnC;
         TimerInt *compCInt;
 #endif
+        bool reserved;
+        float extTickRate;
 
 };
 

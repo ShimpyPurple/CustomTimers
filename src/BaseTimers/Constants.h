@@ -1,6 +1,17 @@
 #ifndef Constants_h
 #define Constants_h
 
+#define TIMER_16_BIT 1
+#define TIMER_8_BIT_ASYNC 2
+
+#define TIMER_1 1
+#define TIMER_2 2
+#if defined( __AVR_ATmega2560__ )
+#define TIMER_3 3
+#define TIMER_4 4
+#define TIMER_5 5
+#endif
+
 #define NORMAL 0
 
 #define PWM_PC_8_BIT     1
