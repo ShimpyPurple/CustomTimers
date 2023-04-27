@@ -25,7 +25,7 @@ BaseTimer16::BaseTimer16(
     uint8_t OCFnC ,
     TimerInt *compCInt
 #endif
-        ):
+):
     TCNTn(TCNTn) ,
     TCCRnA(TCCRnA) , TCCRnB(TCCRnB) , TCCRnC(TCCRnC) ,
     COMnA1(COMnA1) , COMnA0(COMnA0) , COMnB1(COMnB1) , COMnB0(COMnB0) ,
