@@ -41,7 +41,9 @@ class BaseTimer16 {
         
         // Mode and Clock Source
         void setMode( uint8_t mode );
+        uint8_t getMode();
         void setClockSource( uint8_t source );
+        uint8_t getClockSource();
         
         // Tick Rate
         void setExternalTickRate( float tickRate );

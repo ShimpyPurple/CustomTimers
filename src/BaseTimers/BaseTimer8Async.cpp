@@ -78,6 +78,32 @@ void BaseTimer8Async::setMode( uint8_t mode ) {
     SREG = oldSREG;
 }
 
+uint8_t BaseTimer8Async::getMode() {
+    uint8_t wgma = *TCCRnB & ( (1<<WGMn1) | (1<<WGMn0) );
+    uint8_t wgmb = *TCCRnB & ( 1<<WGMn2 );
+    if ( wgmb & (1<<WGMn2) ) {
+        if ( wgma & (( 1<<WGMn1 ) | ( 1<<WGMn0 )) ) {
+            return PWM_FAST_OCA;
+        } else if ( wgma & (1<<WGMn1) ) {
+            return UINT8_MAX;
+        } else if ( wgma & (1<<WGMn0) ) {
+            return PWM_PC_OCA;
+        } else {
+            return UINT8_MAX;
+        }
+    } else {
+        if ( wgma & (( 1<<WGMn1 ) | ( 1<<WGMn0 )) ) {
+            return PWM_FAST_8_BIT;
+        } else if ( wgma & (1<<WGMn1) ) {
+            return CTC_OCA;
+        } else if ( wgma & (1<<WGMn0) ) {
+            return PWM_PC_8_BIT;
+        } else {
+            return NORMAL;
+        }
+    }
+}
+
 void BaseTimer8Async::setClockSource( uint8_t source ) {
     uint8_t oldSREG = SREG;
     cli();
@@ -97,6 +123,27 @@ void BaseTimer8Async::setClockSource( uint8_t source ) {
     SREG = oldSREG;
 }
 
+uint8_t BaseTimer8Async::getClockSource() {
+    uint8_t cs = *TCCRnB & ( (1<<CSn2) | (1<<CSn1) | (1<<CSn0) );
+    if ( cs & (( 1<<CSn2 ) | ( 1<<CSn1 ) | ( 1<<CSn0 )) ) {
+        return CLOCK_1024;
+    } else if ( cs & (( 1<<CSn2 ) | ( 1<<CSn1 )) ) {
+        return CLOCK_256;
+    } else if ( cs & (( 1<<CSn2 ) | ( 1<<CSn0 )) ) {
+        return CLOCK_128;
+    } else if ( cs & (1<<CSn2) ) {
+        return CLOCK_64;
+    } else if ( cs & (( 1<<CSn1 ) | ( 1<<CSn0 )) ) {
+        return CLOCK_32;
+    } else if ( cs & (1<<CSn1) ) {
+        return CLOCK_8;
+    } else if ( cs & (1<<CSn0) ) {
+        return CLOCK_1;
+    } else {
+        return NO_CLOCK;
+    }
+}
+
 // ------------------------------- //
 //            Tick Rate            //
 // ------------------------------- //
@@ -106,35 +153,17 @@ void BaseTimer8Async::setClockRate( float clockRate ) {
 }
 
 float BaseTimer8Async::getTickRate() {
-    if ( *TCCRnB & (1<<CSn2) ) {
-        if ( *TCCRnB & (1<<CSn1) ) {
-            if ( *TCCRnB & (1<<CSn0) ) {
-                return clockRate / 1024;
-            } else {
-                return clockRate / 256;
-            }
-        } else {
-            if ( *TCCRnB & (1<<CSn0) ) {
-                return clockRate / 128;
-            } else {
-                return clockRate / 64;
-            }
-        }
-    } else {
-        if ( *TCCRnB & (1<<CSn1) ) {
-            if ( *TCCRnB & (1<<CSn0) ) {
-                return clockRate / 32;
-            } else {
-                return clockRate / 8;
-            }
-        } else {
-            if ( *TCCRnB & (1<<CSn0) ) {
-                return clockRate;
-            } else {
-                return 0;
-            }
-        }
+    switch ( getClockSource() ) {
+        case NO_CLOCK:   return 0;
+        case CLOCK_1:    return F_CPU;
+        case CLOCK_8:    return F_CPU /    8;
+        case CLOCK_32:   return F_CPU /   32;
+        case CLOCK_64:   return F_CPU /   64;
+        case CLOCK_128:  return F_CPU /  128;
+        case CLOCK_256:  return F_CPU /  256;
+        case CLOCK_1024: return F_CPU / 1024;
     }
+    return 0;
 }
 
 // --------------------------------------- //
