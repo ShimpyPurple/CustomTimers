@@ -31,7 +31,7 @@ class GenericTimer {
     public:
         // Constructors
         GenericTimer( BaseTimer16 *timer16 );
-        GenericTimer( BaseTimer8Async *timer8Async );
+        GenericTimer( BaseTimer8Async *timer8Async , bool emulate16bits );
         
         // Generic Timer Methods
         uint8_t getTimerType();
@@ -45,7 +45,9 @@ class GenericTimer {
         
         // Mode and Clock Source
         void setMode( uint8_t mode );
+        uint8_t getMode();
         void setClockSource( uint8_t source );
+        uint8_t getClockSource();
         
         // Tick Rate
         void setExternalTickRate( float tickRate );
@@ -104,6 +106,23 @@ class GenericTimer {
         uint8_t timerType;
         BaseTimer16 *timer16;
         BaseTimer8Async *timer8Async;
+        bool emulate16bits;
+        uint8_t TCNTnExtraByte;
+        uint8_t OCRnAExtraByte;
+        uint8_t OCRnBExtraByte;
+        bool ctcMode;
+        void (*compAFunc)();
+        void (*compAFuncArg)( void* );
+        void *compAArg;
+        static void compAISR( void *object );
+        void (*compBFunc)();
+        void (*compBFuncArg)( void* );
+        void *compBArg;
+        static void compBISR( void *object );
+        void (*ovfFunc)();
+        void (*ovfFuncArg)( void* );
+        void *ovfArg;
+        static void ovfISR( void *object );
     
 };
 
