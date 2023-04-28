@@ -107,9 +107,9 @@ class GenericTimer {
         BaseTimer16 *timer16;
         BaseTimer8Async *timer8Async;
         bool emulate16bits;
-        uint8_t TCNTnExtraByte;
-        uint8_t OCRnAExtraByte;
-        uint8_t OCRnBExtraByte;
+        volatile uint8_t TCNTnExtraByte;
+        volatile uint8_t OCRnAExtraByte;
+        volatile uint8_t OCRnBExtraByte;
         bool ctcMode;
         void (*compAFunc)();
         void (*compAFuncArg)( void* );
