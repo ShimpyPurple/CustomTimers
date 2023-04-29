@@ -1,6 +1,7 @@
 #ifndef Constants_h
 #define Constants_h
 
+#define NO_TIMER 0
 #define TIMER_16_BIT 1
 #define TIMER_8_BIT_ASYNC 2
 

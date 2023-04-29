@@ -189,6 +189,30 @@ BaseTimer16 Timer5(
 //            Generic Timer            //
 // ----------------------------------- //
 
+GenericTimer::GenericTimer( uint8_t timer , bool emulate16bits=false ):
+    emulate16bits( emulate16bits ) ,
+    TCNTnExtraByte( 0 ) ,
+    OCRnAExtraByte( 0 ) ,
+    OCRnBExtraByte( 0 ) ,
+    ctcMode( false ) ,
+    ovfFunc( []{} ) ,
+    ovfArg( nullptr )
+{
+    switch ( timer ) {
+        case TIMER_1: this->timer16 = &Timer1; this->timer8Async = nullptr; timerType = TIMER_16_BIT; emulate16bits = false; break;
+        case TIMER_2: this->timer16 = nullptr; this->timer8Async = &Timer2; timerType = TIMER_8_BIT_ASYNC;                   break;
+#if defined( __AVR_ATmega2560__ )
+        case TIMER_3: this->timer16 = &Timer3; this->timer8Async = nullptr; timerType = TIMER_16_BIT; emulate16bits = false; break;
+        case TIMER_4: this->timer16 = &Timer4; this->timer8Async = nullptr; timerType = TIMER_16_BIT; emulate16bits = false; break;
+        case TIMER_5: this->timer16 = &Timer5; this->timer8Async = nullptr; timerType = TIMER_16_BIT; emulate16bits = false; break;
+#endif
+        default: timerType = NO_TIMER; break;
+    }
+    if ( emulate16bits ) {
+        timer8Async->attachInterrupt( OVERFLOW , ovfISR , this );
+    }
+}
+
 GenericTimer::GenericTimer( BaseTimer16 *timer16 ):
     timerType( TIMER_16_BIT ) ,
     timer16( timer16 ) ,
@@ -204,8 +228,14 @@ GenericTimer::GenericTimer( BaseTimer8Async *timer8Async , bool emulate16bits ):
     TCNTnExtraByte( 0 ) ,
     OCRnAExtraByte( 0 ) ,
     OCRnBExtraByte( 0 ) ,
-    ctcMode( false )
-{}
+    ctcMode( false ) ,
+    ovfFunc( []{} ) ,
+    ovfArg( nullptr )
+{
+    if ( emulate16bits ) {
+        timer8Async->attachInterrupt( OVERFLOW , ovfISR , this );
+    }
+}
 
 uint8_t GenericTimer::getTimerType() { return timerType; }
 BaseTimer16 *GenericTimer::getTimer16() { return timer16; }

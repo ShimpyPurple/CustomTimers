@@ -30,6 +30,7 @@ extern BaseTimer16 Timer5;
 class GenericTimer {
     public:
         // Constructors
+        GenericTimer( uint8_t timer , bool emulate16bits=false );
         GenericTimer( BaseTimer16 *timer16 );
         GenericTimer( BaseTimer8Async *timer8Async , bool emulate16bits );
         
