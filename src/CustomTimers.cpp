@@ -189,17 +189,53 @@ BaseTimer16 Timer5(
 //            Generic Timer            //
 // ----------------------------------- //
 
+GenericTimer::GenericTimer( uint8_t timer , bool emulate16bits=false ):
+    emulate16bits( emulate16bits ) ,
+    TCNTnExtraByte( 0 ) ,
+    OCRnAExtraByte( 0 ) ,
+    OCRnBExtraByte( 0 ) ,
+    ctcMode( false ) ,
+    ovfFunc( []{} ) ,
+    ovfArg( nullptr )
+{
+    switch ( timer ) {
+        case TIMER_1: this->timer16 = &Timer1; this->timer8Async = nullptr; timerType = TIMER_16_BIT; emulate16bits = false; break;
+        case TIMER_2: this->timer16 = nullptr; this->timer8Async = &Timer2; timerType = TIMER_8_BIT_ASYNC;                   break;
+#if defined( __AVR_ATmega2560__ )
+        case TIMER_3: this->timer16 = &Timer3; this->timer8Async = nullptr; timerType = TIMER_16_BIT; emulate16bits = false; break;
+        case TIMER_4: this->timer16 = &Timer4; this->timer8Async = nullptr; timerType = TIMER_16_BIT; emulate16bits = false; break;
+        case TIMER_5: this->timer16 = &Timer5; this->timer8Async = nullptr; timerType = TIMER_16_BIT; emulate16bits = false; break;
+#endif
+        default: timerType = NO_TIMER; break;
+    }
+    if ( emulate16bits ) {
+        timer8Async->attachInterrupt( OVERFLOW , ovfISR , this );
+    }
+}
+
 GenericTimer::GenericTimer( BaseTimer16 *timer16 ):
     timerType( TIMER_16_BIT ) ,
     timer16( timer16 ) ,
-    timer8Async( nullptr )
+    timer8Async( nullptr ) ,
+    emulate16bits( false )
 {}
 
-GenericTimer::GenericTimer( BaseTimer8Async *timer8Async ):
+GenericTimer::GenericTimer( BaseTimer8Async *timer8Async , bool emulate16bits ):
     timerType( TIMER_8_BIT_ASYNC ) ,
     timer16( nullptr ) ,
-    timer8Async( timer8Async )
-{}
+    timer8Async( timer8Async ) ,
+    emulate16bits( emulate16bits ) ,
+    TCNTnExtraByte( 0 ) ,
+    OCRnAExtraByte( 0 ) ,
+    OCRnBExtraByte( 0 ) ,
+    ctcMode( false ) ,
+    ovfFunc( []{} ) ,
+    ovfArg( nullptr )
+{
+    if ( emulate16bits ) {
+        timer8Async->attachInterrupt( OVERFLOW , ovfISR , this );
+    }
+}
 
 uint8_t GenericTimer::getTimerType() { return timerType; }
 BaseTimer16 *GenericTimer::getTimer16() { return timer16; }
@@ -239,7 +275,23 @@ void GenericTimer::release() {
 void GenericTimer::setMode( uint8_t mode ) {
     switch ( timerType ) {
         case TIMER_16_BIT: timer16->setMode( mode ); break;
-        case TIMER_8_BIT_ASYNC: timer8Async->setMode( mode ); break;
+        case TIMER_8_BIT_ASYNC:
+            if ( emulate16bits ) {
+                if ( mode == CTC_OCA ) {
+                    ctcMode = true;
+                }
+                timer8Async->setMode( NORMAL ); break;
+            } else {
+                timer8Async->setMode( mode ); break;
+            }
+    }
+}
+
+uint8_t GenericTimer::getMode() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getMode();
+        case TIMER_8_BIT_ASYNC: return timer8Async->getMode();
+        default: return UINT8_MAX;
     }
 }
 
@@ -247,6 +299,14 @@ void GenericTimer::setClockSource( uint8_t source ) {
     switch ( timerType ) {
         case TIMER_16_BIT: timer16->setClockSource( source ); break;
         case TIMER_8_BIT_ASYNC: timer8Async->setClockSource( source ); break;
+    }
+}
+
+uint8_t GenericTimer::getClockSource() {
+    switch ( timerType ) {
+        case TIMER_16_BIT: return timer16->getClockSource();
+        case TIMER_8_BIT_ASYNC: return timer8Async->getClockSource();
+        default: return UINT8_MAX;
     }
 }
 
@@ -281,14 +341,26 @@ float GenericTimer::getTickRate() {
 void GenericTimer::setCounter( uint16_t value ) {
     switch ( timerType ) {
         case TIMER_16_BIT: timer16->setCounter( value ); break;
-        case TIMER_8_BIT_ASYNC: timer8Async->setCounter( value ); break;
+        case TIMER_8_BIT_ASYNC:
+            if ( emulate16bits ) {
+                TCNTnExtraByte = value >> 8;
+                timer8Async->setCounter( value & 0xFF );
+            } else {
+                timer8Async->setCounter( value );
+            }
+            break;
     }
 }
 
 uint16_t GenericTimer::getCounter() {
     switch ( timerType ) {
         case TIMER_16_BIT: return timer16->getCounter();
-        case TIMER_8_BIT_ASYNC: return timer8Async->getCounter();
+        case TIMER_8_BIT_ASYNC:
+            if ( emulate16bits ) {
+                return timer8Async->getCounter() | ( (uint16_t)TCNTnExtraByte << 8 );
+            } else {
+                return timer8Async->getCounter();
+            }
         default: return 0;
     }
 }
@@ -300,14 +372,26 @@ uint16_t GenericTimer::getCounter() {
 void GenericTimer::setOutputCompareA( uint16_t value ) {
     switch ( timerType ) {
         case TIMER_16_BIT: timer16->setOutputCompareA( value ); break;
-        case TIMER_8_BIT_ASYNC: timer8Async->setOutputCompareA( value ); break;
+        case TIMER_8_BIT_ASYNC:
+            if ( emulate16bits ) {
+                OCRnAExtraByte = value >> 8;
+                timer8Async->setOutputCompareA( value & 0xFF );
+            } else {
+                timer8Async->setOutputCompareA( value );
+            }
+            break;
     }
 }
 
 uint16_t GenericTimer::getOutputCompareA() {
     switch ( timerType ) {
         case TIMER_16_BIT: return timer16->getOutputCompareA();
-        case TIMER_8_BIT_ASYNC: return timer8Async->getOutputCompareA();
+        case TIMER_8_BIT_ASYNC:
+            if ( emulate16bits ) {
+                return timer8Async->getOutputCompareA() | ( (uint16_t)OCRnAExtraByte << 8 );
+            } else {
+                return timer8Async->getOutputCompareA();
+            }
         default: return 0;
     }
 }
@@ -348,14 +432,26 @@ void GenericTimer::clearOutputCompareAFlag() {
 void GenericTimer::setOutputCompareB( uint16_t value ) {
     switch ( timerType ) {
         case TIMER_16_BIT: timer16->setOutputCompareB( value ); break;
-        case TIMER_8_BIT_ASYNC: timer8Async->setOutputCompareB( value ); break;
+        case TIMER_8_BIT_ASYNC:
+            if ( emulate16bits ) {
+                OCRnBExtraByte = value >> 8;
+                timer8Async->setOutputCompareB( value & 0xFF );
+            } else {
+                timer8Async->setOutputCompareB( value );
+            }
+            break;
     }
 }
 
 uint16_t GenericTimer::getOutputCompareB() {
     switch ( timerType ) {
         case TIMER_16_BIT: return timer16->getOutputCompareB();
-        case TIMER_8_BIT_ASYNC: return timer8Async->getOutputCompareB();
+        case TIMER_8_BIT_ASYNC:
+            if ( emulate16bits ) {
+                return timer8Async->getOutputCompareB() | ( (uint16_t)OCRnBExtraByte << 8 );
+            } else {
+                return timer8Async->getOutputCompareB();
+            }
         default: return 0;
     }
 }
@@ -495,14 +591,54 @@ void GenericTimer::clearOverflowFlag() {
 void GenericTimer::attachInterrupt( uint8_t mode , void (*func)() ) {
     switch ( timerType ) {
         case TIMER_16_BIT: timer16->attachInterrupt( mode , func ); break;
-        case TIMER_8_BIT_ASYNC: timer8Async->attachInterrupt( mode , func ); break;
+        case TIMER_8_BIT_ASYNC:
+            if ( emulate16bits ) {
+                switch ( mode ) {
+                    case COMPARE_MATCH_A:
+                        compAFunc = func;
+                        compAArg = nullptr;
+                        timer8Async->attachInterrupt( COMPARE_MATCH_A , compAISR , this );
+                        break;
+                    case COMPARE_MATCH_B:
+                        compBFunc = func;
+                        compBArg = nullptr;
+                        timer8Async->attachInterrupt( COMPARE_MATCH_B , compBISR , this );
+                        break;
+                    case OVERFLOW:
+                        ovfFunc = func;
+                        ovfArg = nullptr;
+                        timer8Async->attachInterrupt( OVERFLOW , ovfISR , this );
+                        break;
+                }
+            }
+            break;
     }
 }
 
 void GenericTimer::attachInterrupt( uint8_t mode , void (*func)(void*) , void *arg ) {
     switch ( timerType ) {
         case TIMER_16_BIT: timer16->attachInterrupt( mode , func , arg ); break;
-        case TIMER_8_BIT_ASYNC: timer8Async->attachInterrupt( mode , func , arg ); break;
+        case TIMER_8_BIT_ASYNC:
+            if ( emulate16bits ) {
+                switch ( mode ) {
+                    case COMPARE_MATCH_A:
+                        compAFuncArg = func;
+                        compAArg = arg;
+                        timer8Async->attachInterrupt( COMPARE_MATCH_A , compAISR , this );
+                        break;
+                    case COMPARE_MATCH_B:
+                        compBFuncArg = func;
+                        compBArg = arg;
+                        timer8Async->attachInterrupt( COMPARE_MATCH_B , compBISR , this );
+                        break;
+                    case OVERFLOW:
+                        ovfFuncArg = func;
+                        ovfArg = arg;
+                        timer8Async->attachInterrupt( OVERFLOW , ovfISR , this );
+                        break;
+                }
+            }
+            break;
     }
 }
 
@@ -528,3 +664,34 @@ bool GenericTimer::interruptEnabled( uint8_t mode ) {
     }
 }
 
+static void GenericTimer::compAISR( void *object ) {
+    GenericTimer *genTimer = ( GenericTimer* )( object );
+    if ( genTimer->OCRnAExtraByte != genTimer->TCNTnExtraByte ) return;
+    if ( genTimer->ctcMode ) genTimer->setCounter( 0 );
+    if ( genTimer->compAArg == nullptr ) {
+        genTimer->compAFunc();
+    } else {
+        genTimer->compAFuncArg( genTimer->compAArg );
+    }
+}
+
+static void GenericTimer::compBISR( void *object ) {
+    GenericTimer *genTimer = ( GenericTimer* )( object );
+    if ( genTimer->OCRnBExtraByte != genTimer->TCNTnExtraByte ) return;
+    if ( genTimer->compBArg == nullptr ) {
+        genTimer->compBFunc();
+    } else {
+        genTimer->compBFuncArg( genTimer->compBArg );
+    }
+}
+
+static void GenericTimer::ovfISR( void *object ) {
+    GenericTimer *genTimer = ( GenericTimer* )( object );
+    genTimer->TCNTnExtraByte += 1;
+    if ( genTimer->TCNTnExtraByte != 0 ) return;
+    if ( genTimer->ovfArg == nullptr ) {
+        genTimer->ovfFunc();
+    } else {
+        genTimer->ovfFuncArg( genTimer->ovfArg );
+    }
+}

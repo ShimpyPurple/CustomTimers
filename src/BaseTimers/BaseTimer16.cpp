@@ -109,6 +109,52 @@ void BaseTimer16::setMode( uint8_t mode ) {
     SREG = oldSREG;
 }
 
+uint8_t BaseTimer16::getMode() {
+    uint8_t wgma = *TCCRnB & ( (1<<WGMn1) | (1<<WGMn0) );
+    uint8_t wgmb = *TCCRnB & ( (1<<WGMn3) | (1<<WGMn2) );
+    if ( wgmb & (( 1<<WGMn3 ) | ( 1<<WGMn2 )) ) {
+        if ( wgma & (( 1<<WGMn1 ) | ( 1<<WGMn0 )) ) {
+            return PWM_FAST_OCA;
+        } else if ( wgma & (1<<WGMn1) ) {
+            return PWM_FAST_IC;
+        } else if ( wgma & (1<<WGMn0) ) {
+            return UINT8_MAX;
+        } else {
+            return CTC_IC;
+        }
+    } else if ( wgmb & (1<<WGMn3) ) {
+        if ( wgma & (( 1<<WGMn1 ) | ( 1<<WGMn0 )) ) {
+            return PWM_PC_OCA;
+        } else if ( wgma & (1<<WGMn1) ) {
+            return PWM_PC_IC;
+        } else if ( wgma & (1<<WGMn0) ) {
+            return PWM_PFC_OCA;
+        } else {
+            return PWM_PFC_IC;
+        }
+    } else if ( wgmb & (1<<WGMn2) ) {
+        if ( wgma & (( 1<<WGMn1 ) | ( 1<<WGMn0 )) ) {
+            return PWM_FAST_10_BIT;
+        } else if ( wgma & (1<<WGMn1) ) {
+            return PWM_FAST_9_BIT;
+        } else if ( wgma & (1<<WGMn0) ) {
+            return PWM_FAST_8_BIT;
+        } else {
+            return CTC_OCA;
+        }
+    } else {
+        if ( wgma & (( 1<<WGMn1 ) | ( 1<<WGMn0 )) ) {
+            return PWM_PC_10_BIT;
+        } else if ( wgma & (1<<WGMn1) ) {
+            return PWM_PC_9_BIT;
+        } else if ( wgma & (1<<WGMn0) ) {
+            return PWM_PC_8_BIT;
+        } else {
+            return NORMAL;
+        }
+    }
+}
+
 void BaseTimer16::setClockSource( uint8_t source ) {
     uint8_t oldSREG = SREG;
     cli();
@@ -128,6 +174,27 @@ void BaseTimer16::setClockSource( uint8_t source ) {
     SREG = oldSREG;
 }
 
+uint8_t BaseTimer16::getClockSource() {
+    uint8_t cs = *TCCRnB & ( (1<<CSn2) | (1<<CSn1) | (1<<CSn0) );
+    if ( cs & (( 1<<CSn2 ) | ( 1<<CSn1 ) | ( 1<<CSn0 )) ) {
+        return EXT_RISING;
+    } else if ( cs & (( 1<<CSn2 ) | ( 1<<CSn1 )) ) {
+        return EXT_FALLING;
+    } else if ( cs & (( 1<<CSn2 ) | ( 1<<CSn0 )) ) {
+        return CLOCK_1024;
+    } else if ( cs & (1<<CSn2) ) {
+        return CLOCK_256;
+    } else if ( cs & (( 1<<CSn1 ) | ( 1<<CSn0 )) ) {
+        return CLOCK_64;
+    } else if ( cs & (1<<CSn1) ) {
+        return CLOCK_8;
+    } else if ( cs & (1<<CSn0) ) {
+        return CLOCK_1;
+    } else {
+        return NO_CLOCK;
+    }
+}
+
 // ------------------------------- //
 //            Tick Rate            //
 // ------------------------------- //
@@ -137,31 +204,17 @@ void BaseTimer16::setExternalTickRate( float tickRate ) {
 }
 
 float BaseTimer16::getTickRate() {
-    if ( *TCCRnB & (1<<CSn2) ) {
-        if ( *TCCRnB & (1<<CSn1) ) {
-            return extTickRate;
-        } else {
-            if ( *TCCRnB & (1<<CSn0) ) {
-                return F_CPU / 1024;
-            } else {
-                return F_CPU / 256;
-            }
-        }
-    } else {
-        if ( *TCCRnB & (1<<CSn1) ) {
-            if ( *TCCRnB & (1<<CSn0) ) {
-                return F_CPU / 64;
-            } else {
-                return F_CPU / 8;
-            }
-        } else {
-            if ( *TCCRnB & (1<<CSn0) ) {
-                return F_CPU;
-            } else {
-                return 0;
-            }
-        }
+    switch ( getClockSource() ) {
+        case NO_CLOCK:    return 0;
+        case CLOCK_1:     return F_CPU;
+        case CLOCK_8:     return F_CPU /    8;
+        case CLOCK_64:    return F_CPU /   64;
+        case CLOCK_256:   return F_CPU /  256;
+        case CLOCK_1024:  return F_CPU / 1024;
+        case EXT_FALLING: return extTickRate;
+        case EXT_RISING:  return extTickRate;
     }
+    return 0;
 }
 
 // --------------------------------------- //
