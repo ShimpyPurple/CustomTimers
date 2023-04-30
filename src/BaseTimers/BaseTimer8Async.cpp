@@ -30,30 +30,6 @@ BaseTimer8Async::BaseTimer8Async(
     clockRate( F_CPU )
 {}
 
-// --------------------------------------- //
-//            Timer Reservation            //
-// --------------------------------------- //
-
-bool BaseTimer8Async::reserve(){
-    if ( !reserved ) {
-        reserved = true;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool BaseTimer8Async::isFree(){
-    return !reserved;
-}
-
-void BaseTimer8Async::release(){
-    reserved = false;
-    disableInterrupt( COMPARE_MATCH_A );
-    disableInterrupt( COMPARE_MATCH_B );
-    disableInterrupt( OVERFLOW );
-}
-
 // ------------------------------------------- //
 //            Mode and Clock Source            //
 // ------------------------------------------- //

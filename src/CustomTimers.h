@@ -39,11 +39,6 @@ class GenericTimer {
         BaseTimer16 *getTimer16();
         BaseTimer8Async *getTimer8Async();
         
-        // Timer Reservation
-        bool reserve();
-        bool isFree();
-        void release();
-        
         // Mode and Clock Source
         void setMode( uint8_t mode );
         uint8_t getMode();
