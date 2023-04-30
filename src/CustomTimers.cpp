@@ -241,33 +241,6 @@ uint8_t GenericTimer::getTimerType() { return timerType; }
 BaseTimer16 *GenericTimer::getTimer16() { return timer16; }
 BaseTimer8Async *GenericTimer::getTimer8Async() { return timer8Async; }
 
-// --------------------------------------- //
-//            Timer Reservation            //
-// --------------------------------------- //
-
-bool GenericTimer::reserve() {
-    switch ( timerType ) {
-        case TIMER_16_BIT: return timer16->reserve();
-        case TIMER_8_BIT_ASYNC: return timer8Async->reserve();
-        default: return false;
-    }
-}
-
-bool GenericTimer::isFree() {
-    switch ( timerType ) {
-        case TIMER_16_BIT: return timer16->isFree();
-        case TIMER_8_BIT_ASYNC: return timer8Async->isFree();
-        default: return false;
-    }
-}
-
-void GenericTimer::release() {
-    switch ( timerType ) {
-        case TIMER_16_BIT: timer16->release(); break;
-        case TIMER_8_BIT_ASYNC: timer8Async->release(); break;
-    }
-}
-
 // ------------------------------------------- //
 //            Mode and Clock Source            //
 // ------------------------------------------- //

@@ -34,11 +34,6 @@ class BaseTimer16 {
 #endif
         );
         
-        // Timer Reservation
-        bool reserve();
-        bool isFree();
-        void release();
-        
         // Mode and Clock Source
         void setMode( uint8_t mode );
         uint8_t getMode();

@@ -49,34 +49,6 @@ BaseTimer16::BaseTimer16(
     extTickRate( 0 )
 {}
 
-// --------------------------------------- //
-//            Timer Reservation            //
-// --------------------------------------- //
-
-bool BaseTimer16::reserve() {
-    if ( !reserved ) {
-        reserved = true;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool BaseTimer16::isFree() {
-    return !reserved;
-}
-
-void BaseTimer16::release() {
-    reserved = false;
-    disableInterrupt( COMPARE_MATCH_A );
-    disableInterrupt( COMPARE_MATCH_B );
-    disableInterrupt( INPUT_CAPTURE );
-    disableInterrupt( OVERFLOW );
-#if defined( __AVR_ATmega2560__ )
-    disableInterrupt( COMPARE_MATCH_C );
-#endif
-}
-
 // ------------------------------------------- //
 //            Mode and Clock Source            //
 // ------------------------------------------- //
