@@ -253,7 +253,7 @@ void GenericTimer::setMode( uint8_t mode ) {
                 if ( mode == CTC_OCA ) {
                     ctcMode = true;
                 }
-                timer8Async->setMode( NORMAL ); break;
+                timer8Async->setMode( WGM_NORMAL ); break;
             } else {
                 timer8Async->setMode( mode ); break;
             }
