@@ -13,8 +13,7 @@
 #define TIMER_5 5
 #endif
 
-#define NORMAL 0
-
+#define WGM_NORMAL       0
 #define PWM_PC_8_BIT     1
 #define PWM_PC_9_BIT     2
 #define PWM_PC_10_BIT    3
@@ -49,6 +48,7 @@
 #define COMPARE_MATCH_C 2
 #endif
 
+#define NORMAL_PIN_OP   0
 #define TOGGLE_ON_MATCH 1
 #define CLEAR_ON_MATCH  2
 #define SET_ON_MATCH    3

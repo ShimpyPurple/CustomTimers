@@ -59,8 +59,9 @@ void BaseTimer16::setMode( uint8_t mode ) {
     
     *TCCRnA &= ~( (1<<WGMn1) | (1<<WGMn0) );
     *TCCRnB &= ~( (1<<WGMn3) | (1<<WGMn2) );
+    
     switch ( mode ) {
-        case NORMAL:                                                                                          break;
+        case WGM_NORMAL:                                                                                      break;
         case PWM_PC_8_BIT:                                            *TCCRnA |=                ( 1<<WGMn0 ); break;
         case PWM_PC_9_BIT:                                            *TCCRnA |= ( 1<<WGMn1 );                break;
         case PWM_PC_10_BIT:                                           *TCCRnA |= ( 1<<WGMn1 ) | ( 1<<WGMn0 ); break;
@@ -82,48 +83,23 @@ void BaseTimer16::setMode( uint8_t mode ) {
 }
 
 uint8_t BaseTimer16::getMode() {
-    uint8_t wgma = *TCCRnB & ( (1<<WGMn1) | (1<<WGMn0) );
-    uint8_t wgmb = *TCCRnB & ( (1<<WGMn3) | (1<<WGMn2) );
-    if ( wgmb & (( 1<<WGMn3 ) | ( 1<<WGMn2 )) ) {
-        if ( wgma & (( 1<<WGMn1 ) | ( 1<<WGMn0 )) ) {
-            return PWM_FAST_OCA;
-        } else if ( wgma & (1<<WGMn1) ) {
-            return PWM_FAST_IC;
-        } else if ( wgma & (1<<WGMn0) ) {
-            return UINT8_MAX;
-        } else {
-            return CTC_IC;
-        }
-    } else if ( wgmb & (1<<WGMn3) ) {
-        if ( wgma & (( 1<<WGMn1 ) | ( 1<<WGMn0 )) ) {
-            return PWM_PC_OCA;
-        } else if ( wgma & (1<<WGMn1) ) {
-            return PWM_PC_IC;
-        } else if ( wgma & (1<<WGMn0) ) {
-            return PWM_PFC_OCA;
-        } else {
-            return PWM_PFC_IC;
-        }
-    } else if ( wgmb & (1<<WGMn2) ) {
-        if ( wgma & (( 1<<WGMn1 ) | ( 1<<WGMn0 )) ) {
-            return PWM_FAST_10_BIT;
-        } else if ( wgma & (1<<WGMn1) ) {
-            return PWM_FAST_9_BIT;
-        } else if ( wgma & (1<<WGMn0) ) {
-            return PWM_FAST_8_BIT;
-        } else {
-            return CTC_OCA;
-        }
-    } else {
-        if ( wgma & (( 1<<WGMn1 ) | ( 1<<WGMn0 )) ) {
-            return PWM_PC_10_BIT;
-        } else if ( wgma & (1<<WGMn1) ) {
-            return PWM_PC_9_BIT;
-        } else if ( wgma & (1<<WGMn0) ) {
-            return PWM_PC_8_BIT;
-        } else {
-            return NORMAL;
-        }
+    switch ( (*TCCRnB>>WGMn3 & 1)<<3 | (*TCCRnB>>WGMn2 & 1)<<2 | (*TCCRnA>>WGMn1 & 1)<<1 | (*TCCRnA>>WGMn0 & 1) ) {
+        case  0: return WGM_NORMAL;
+        case  1: return PWM_PC_8_BIT;
+        case  2: return PWM_PC_9_BIT;
+        case  3: return PWM_PC_10_BIT;
+        case  4: return CTC_OCA;
+        case  5: return PWM_FAST_8_BIT;
+        case  6: return PWM_FAST_9_BIT;
+        case  7: return PWM_FAST_10_BIT;
+        case  8: return PWM_PFC_IC;
+        case  9: return PWM_PFC_OCA;
+        case 10: return PWM_PC_IC;
+        case 11: return PWM_PC_OCA;
+        case 12: return CTC_IC;
+        case 14: return PWM_FAST_IC;
+        case 15: return PWM_FAST_OCA;
+        default: return WGM_NORMAL;
     }
 }
 
@@ -147,23 +123,16 @@ void BaseTimer16::setClockSource( uint8_t source ) {
 }
 
 uint8_t BaseTimer16::getClockSource() {
-    uint8_t cs = *TCCRnB & ( (1<<CSn2) | (1<<CSn1) | (1<<CSn0) );
-    if ( cs & (( 1<<CSn2 ) | ( 1<<CSn1 ) | ( 1<<CSn0 )) ) {
-        return EXT_RISING;
-    } else if ( cs & (( 1<<CSn2 ) | ( 1<<CSn1 )) ) {
-        return EXT_FALLING;
-    } else if ( cs & (( 1<<CSn2 ) | ( 1<<CSn0 )) ) {
-        return CLOCK_1024;
-    } else if ( cs & (1<<CSn2) ) {
-        return CLOCK_256;
-    } else if ( cs & (( 1<<CSn1 ) | ( 1<<CSn0 )) ) {
-        return CLOCK_64;
-    } else if ( cs & (1<<CSn1) ) {
-        return CLOCK_8;
-    } else if ( cs & (1<<CSn0) ) {
-        return CLOCK_1;
-    } else {
-        return NO_CLOCK;
+    switch ( (*TCCRnB>>CSn2 & 1)<<2 | (*TCCRnB>>CSn1 & 1)<<1 | (*TCCRnB>>CSn0 & 1) ) {
+        case 0: return NO_CLOCK;
+        case 1: return CLOCK_1;
+        case 2: return CLOCK_8;
+        case 3: return CLOCK_64;
+        case 4: return CLOCK_256;
+        case 5: return CLOCK_1024;
+        case 6: return EXT_FALLING;
+        case 7: return EXT_RISING;
+        default: return NO_CLOCK;
     }
 }
 
@@ -185,8 +154,8 @@ float BaseTimer16::getTickRate() {
         case CLOCK_1024:  return F_CPU / 1024;
         case EXT_FALLING: return extTickRate;
         case EXT_RISING:  return extTickRate;
+        default:          return 0;
     }
-    return 0;
 }
 
 // --------------------------------------- //
@@ -208,7 +177,7 @@ void BaseTimer16::setCompareOutputModeA( uint8_t mode ) {
     
     *TCCRnA &= ~( (1<<COMnA1) | (1<<COMnA0) );
     switch ( mode ) {
-        case NORMAL:                                                    break;
+        case NORMAL_PIN_OP:                                             break;
         case TOGGLE_ON_MATCH: *TCCRnA |=                 ( 1<<COMnA0 ); break;
         case CLEAR_ON_MATCH:  *TCCRnA |= ( 1<<COMnA1 );                 break;
         case SET_ON_MATCH:    *TCCRnA |= ( 1<<COMnA1 ) | ( 1<<COMnA0 ); break;
@@ -232,7 +201,7 @@ void BaseTimer16::setCompareOutputModeB( uint8_t mode ) {
     
     *TCCRnB &= ~( (1<<COMnB1) | (1<<COMnB0) );
     switch ( mode ) {
-        case NORMAL:                                                    break;
+        case NORMAL_PIN_OP:                                             break;
         case TOGGLE_ON_MATCH: *TCCRnB |=                 ( 1<<COMnB0 ); break;
         case CLEAR_ON_MATCH:  *TCCRnB |= ( 1<<COMnB1 );                 break;
         case SET_ON_MATCH:    *TCCRnB |= ( 1<<COMnB1 ) | ( 1<<COMnB0 ); break;
@@ -257,7 +226,7 @@ void BaseTimer16::setCompareOutputModeC( uint8_t mode ) {
     
     *TCCRnC &= ~( (1<<COMnC1) | (1<<COMnC0) );
     switch ( mode ) {
-        case NORMAL:                                                    break;
+        case NORMAL_PIN_OP:                                             break;
         case TOGGLE_ON_MATCH: *TCCRnC |=                 ( 1<<COMnC0 ); break;
         case CLEAR_ON_MATCH:  *TCCRnC |= ( 1<<COMnC1 );                 break;
         case SET_ON_MATCH:    *TCCRnC |= ( 1<<COMnC1 ) | ( 1<<COMnC0 ); break;
