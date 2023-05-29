@@ -32,7 +32,7 @@ class GenericTimer {
         // Constructors
         GenericTimer( uint8_t timer , bool emulate16bits=false );
         GenericTimer( BaseTimer16 *timer16 );
-        GenericTimer( BaseTimer8Async *timer8Async , bool emulate16bits );
+        GenericTimer( BaseTimer8Async *timer8Async , bool emulate16bits=false );
         
         // Generic Timer Methods
         uint8_t getTimerType();
