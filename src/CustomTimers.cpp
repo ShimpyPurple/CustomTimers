@@ -1,4 +1,6 @@
 #include "CustomTimers.h"
+#include "BaseTimers/Constants.h"
+
 
 // ----------------------------- //
 //            Timer 1            //
