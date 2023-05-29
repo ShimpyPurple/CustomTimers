@@ -6,14 +6,6 @@
 #include "BaseTimers/BaseTimer8Async.h"
 #include "Config/Config.h"
 
-#define TIMER_1 1
-#define TIMER_2 2
-#if defined( __AVR_ATmega2560__ )
-#define TIMER_3 3
-#define TIMER_4 4
-#define TIMER_5 5
-#endif
-
 #if ( TIMER1_ENABLED != 0 )
 extern BaseTimer16 Timer1;
 #endif
