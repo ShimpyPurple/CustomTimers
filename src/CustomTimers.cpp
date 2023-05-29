@@ -189,7 +189,7 @@ BaseTimer16 Timer5(
 //            Generic Timer            //
 // ----------------------------------- //
 
-GenericTimer::GenericTimer( uint8_t timer , bool emulate16bits=false ):
+GenericTimer::GenericTimer( uint8_t timer , bool emulate16bits ):
     emulate16bits( emulate16bits ) ,
     TCNTnExtraByte( 0 ) ,
     OCRnAExtraByte( 0 ) ,
