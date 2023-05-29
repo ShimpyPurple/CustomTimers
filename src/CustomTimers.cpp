@@ -637,7 +637,7 @@ bool GenericTimer::interruptEnabled( uint8_t mode ) {
     }
 }
 
-static void GenericTimer::compAISR( void *object ) {
+void GenericTimer::compAISR( void *object ) {
     GenericTimer *genTimer = ( GenericTimer* )( object );
     if ( genTimer->OCRnAExtraByte != genTimer->TCNTnExtraByte ) return;
     if ( genTimer->ctcMode ) genTimer->setCounter( 0 );
@@ -648,7 +648,7 @@ static void GenericTimer::compAISR( void *object ) {
     }
 }
 
-static void GenericTimer::compBISR( void *object ) {
+void GenericTimer::compBISR( void *object ) {
     GenericTimer *genTimer = ( GenericTimer* )( object );
     if ( genTimer->OCRnBExtraByte != genTimer->TCNTnExtraByte ) return;
     if ( genTimer->compBArg == nullptr ) {
@@ -658,7 +658,7 @@ static void GenericTimer::compBISR( void *object ) {
     }
 }
 
-static void GenericTimer::ovfISR( void *object ) {
+void GenericTimer::ovfISR( void *object ) {
     GenericTimer *genTimer = ( GenericTimer* )( object );
     genTimer->TCNTnExtraByte += 1;
     if ( genTimer->TCNTnExtraByte != 0 ) return;
