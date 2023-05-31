@@ -4,7 +4,6 @@
 #include "Arduino.h"
 #include "BaseTimers/BaseTimer16.h"
 #include "BaseTimers/BaseTimer8Async.h"
-#include "BaseTimers/Constants.h"
 #include "Config/Config.h"
 
 #if ( TIMER1_ENABLED != 0 )
